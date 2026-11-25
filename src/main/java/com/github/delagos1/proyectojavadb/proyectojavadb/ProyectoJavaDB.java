@@ -6,6 +6,9 @@ package com.github.delagos1.proyectojavadb.proyectojavadb;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
 /**
  *
  * @author david
@@ -16,12 +19,46 @@ public class ProyectoJavaDB {
         System.out.println("=== Probando conexion a la base de datos de SQL Server ===");
         Connection cn = ConexionDB.getConnection();
         
+        if(cn != null) {
+            System.out.println("Status: Online");
+        }
+        
+        PreparedStatement psInsert = null;
+        PreparedStatement psSelect = null;
+        ResultSet rs = null;
+        
         try {
-            if(cn != null && !cn.isClosed()) {
-                System.out.println("Status: Online 🟢");
+            System.out.println("\n1 Insertando nuevo alumno");
+            
+            String insertSql = "INSERT INTO Alumnos(nombre, correo) VALUES (?, ?)";
+            psInsert = cn.prepareStatement(insertSql); 
+            
+            psInsert.setString(1, "Carlos Martinez");
+            psInsert.setString(2, "cmartinez@test.com");
+            
+            int rowsAffected = psInsert.executeUpdate();
+            if(rowsAffected > 0) {
+                System.out.println("Alumno ingresado exitosamente");
             }
-            else {
-                System.out.println("Status: Unable to connect to DB ❌");
+            
+            System.out.println("\n2 Consultando en la Tabla de Alumnos");
+            
+            String sqlSelect = "SELECT id, nombre, correo FROM Alumnos";
+            
+            psSelect = cn.prepareStatement(sqlSelect);
+            rs = psSelect.executeQuery();
+            
+            System.out.println("\n===================================");
+            System.out.println("ID  |      Nombre      |      Correo");
+            System.out.println("====================================");
+            
+            while(rs.next()) {
+                int id = rs.getInt("id");
+                String nombre = rs.getString("nombre");
+                String correo = rs.getString("correo");
+                
+                System.out.printf("%-3d | %-20s | %s\n", id, nombre, correo);
+                System.out.println("===================================");
             }
         }
         catch(SQLException e) {
